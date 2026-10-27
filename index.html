@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de Renda Passiva</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-inner">
+      <div>
+        <h1>Calculadora de Renda Passiva</h1>
+        <p class="sub">Projeções para a aposentadoria, em reais de hoje.</p>
+      </div>
+      <nav class="abas" role="tablist">
+        <button role="tab" class="aba ativa" data-aba="simulacao" aria-selected="true">Simulação</button>
+        <button role="tab" class="aba" data-aba="comparar" aria-selected="false">Comparar cenários</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="cenarios" aria-label="Cenários salvos">
+      <label class="campo-inline">Cenário
+        <select id="cenario-select"></select>
+      </label>
+      <input id="cenario-nome" type="text" placeholder="Nome do cenário" aria-label="Nome do cenário">
+      <div class="botoes">
+        <button id="btn-salvar" class="primario">Salvar</button>
+        <button id="btn-novo">Salvar como novo</button>
+        <button id="btn-excluir">Excluir</button>
+        <button id="btn-exportar" title="Baixar todos os cenários num arquivo">Exportar</button>
+        <label class="botao" title="Carregar cenários de um arquivo">Importar
+          <input id="arquivo-importar" type="file" accept="application/json,.json" hidden>
+        </label>
+        <button id="btn-link" title="Copiar um link com este cenário">Copiar link</button>
+      </div>
+      <span id="aviso" class="aviso" role="status" aria-live="polite"></span>
+    </section>
+
+    <div id="painel-simulacao" class="painel">
+      <form id="form" class="entradas" autocomplete="off">
+        <fieldset>
+          <legend>Você</legend>
+          <label>Idade atual <input name="idadeAtual" type="number" min="0" max="100" step="1"></label>
+          <label>Idade para se aposentar <input name="idadeAposentadoria" type="number" min="0" max="100" step="1"></label>
+          <label>Idade final (expectativa) <input name="idadeFinal" type="number" min="0" max="110" step="1">
+            <small>Até quando a renda precisa durar no modo "consumindo o patrimônio".</small></label>
+        </fieldset>
+        <fieldset>
+          <legend>Objetivo</legend>
+          <label>Renda passiva desejada (R$/mês) <input name="rendaDesejada" type="number" min="0" step="100">
+            <small>Em reais de hoje.</small></label>
+        </fieldset>
+        <fieldset>
+          <legend>Aportes</legend>
+          <label>Investimento inicial (R$) <input name="investimentoInicial" type="number" min="0" step="1000"></label>
+          <label>Renda mensal atual (R$) <input name="rendaAtual" type="number" min="0" step="100"></label>
+          <label>Economia mensal (%) <input name="economiaPct" type="number" min="0" max="100" step="1">
+            <small>Aporte mensal inicial: <output id="out-aporte"></output></small></label>
+          <label>Crescimento anual do aporte (%) <input name="crescimentoAporte" type="number" step="0.1">
+            <small>Reajuste do aporte por ano. Igual à inflação mantém o aporte constante em reais de hoje.</small></label>
+        </fieldset>
+        <fieldset>
+          <legend>Premissas (% ao ano, nominais)</legend>
+          <label>Rendimento das aplicações <input name="rendAplicacoes" type="number" step="0.1">
+            <small>Na fase de acumulação.</small></label>
+          <label>Rendimento na renda passiva <input name="rendPassiva" type="number" step="0.1">
+            <small>Após a aposentadoria (carteira mais conservadora).</small></label>
+          <label>Inflação <input name="inflacao" type="number" step="0.1"></label>
+          <p class="taxas-reais" id="taxas-reais"></p>
+        </fieldset>
+      </form>
+
+      <div class="resultados">
+        <div class="exibicao">
+          <span>Exibir valores</span>
+          <div class="segmentado" role="radiogroup" aria-label="Exibir valores">
+            <button type="button" data-modo="real" class="ativo" role="radio" aria-checked="true">Em reais de hoje</button>
+            <button type="button" data-modo="nominal" role="radio" aria-checked="false">Nominais (futuros)</button>
+          </div>
+        </div>
+
+        <div class="tiles" id="tiles"></div>
+
+        <div class="cartao">
+          <div class="cartao-topo">
+            <h2>Evolução do patrimônio</h2>
+            <p class="nota">Acumula até a aposentadoria e depois saca a renda desejada todo mês.</p>
+          </div>
+          <div class="grafico" id="grafico-principal"></div>
+        </div>
+
+        <div class="duas-colunas">
+          <div class="cartao">
+            <h2>Quanto preciso aportar?</h2>
+            <p class="nota">Aporte mensal inicial para chegar à meta aos <span data-idade-apos></span> anos,
+              mantendo o crescimento anual informado.</p>
+            <div id="inverso"></div>
+          </div>
+          <div class="cartao">
+            <h2>Na aposentadoria</h2>
+            <p class="nota">O que o patrimônio projetado aos <span data-idade-apos></span> anos permite.</p>
+            <div id="aposentadoria"></div>
+          </div>
+        </div>
+
+        <details class="cartao tabela-cartao" open>
+          <summary><h2>Projeção ano a ano</h2></summary>
+          <div class="tabela-wrap">
+            <table id="tabela">
+              <thead>
+                <tr>
+                  <th>Ano</th><th>Idade</th><th>Fase</th><th>Aportes</th><th>Rendimentos</th>
+                  <th>Saques</th><th>Patrimônio (fim)</th><th>Renda perpétua/mês</th><th>% da meta</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div id="painel-comparar" class="painel" hidden>
+      <div class="cartao">
+        <div class="cartao-topo">
+          <h2>Cenários salvos</h2>
+          <p class="nota">Marque até 6 cenários para ver no gráfico. Valores em reais de hoje.</p>
+        </div>
+        <div class="tabela-wrap">
+          <table id="tabela-comparar">
+            <thead>
+              <tr>
+                <th></th><th>Cenário</th><th>Aporte inicial</th><th>Aplicações</th><th>Renda passiva</th>
+                <th>Meta perpétua</th><th>Atinge aos</th><th>Meta consumindo</th><th>Atinge aos</th>
+                <th>Patrimônio na aposentadoria</th><th>Renda perpétua possível</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="cartao">
+        <h2>Patrimônio por cenário</h2>
+        <div class="legenda" id="legenda-comparar"></div>
+        <div class="grafico" id="grafico-comparar"></div>
+      </div>
+    </div>
+
+    <footer class="rodape">
+      <p>Simulação mês a mês: aportes no fim de cada mês, reajustados a cada 12 meses. Taxa real = (1 + nominal) ÷ (1 + inflação) − 1.
+        Não considera imposto de renda nem taxas. Os cenários ficam salvos neste navegador; use Exportar/Importar ou Copiar link para levar a outro aparelho.</p>
+    </footer>
+  </main>
+
+  <script src="calc.js"></script>
+  <script src="chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

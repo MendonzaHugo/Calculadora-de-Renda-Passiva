@@ -1,0 +1,8 @@
+{
+  "name": "calculadora-de-renda-passiva",
+  "private": true,
+  "description": "Calculadora de renda passiva para projeções de aposentadoria",
+  "scripts": {
+    "test": "node --test test/calc.test.js"
+  }
+}
