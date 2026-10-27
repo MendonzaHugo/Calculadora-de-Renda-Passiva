@@ -6,6 +6,7 @@ a partir de aportes mensais. Baseado na planilha "Cálculo de Renda Passiva".
 ## Como usar
 
 Abra o `index.html` no navegador. Não precisa instalar nada.
+O arquivo `calculadora-renda-passiva.html` é a mesma calculadora num único arquivo, para baixar e abrir direto.
 Para publicar, ative o GitHub Pages no repositório (Settings → Pages → branch principal, pasta raiz).
 
 ## O que calcula

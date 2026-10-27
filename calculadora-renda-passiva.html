@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de Renda Passiva</title>
+  <style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-2: #f0efec;
+  --text: #0b0b0b;
+  --text-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --accent: #2a78d6;
+  --accent-ink: #ffffff;
+  --good: #006300;
+  --critical: #d03b3b;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --fase-renda: rgba(42, 120, 214, 0.06);
+  --radius: 12px;
+  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #262624;
+    --text: #f0efec;
+    --text-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --accent: #3987e5;
+    --good: #0ca30c;
+    --critical: #e66767;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --fase-renda: rgba(57, 135, 229, 0.08);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #262624;
+  --text: #f0efec;
+  --text-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --accent: #3987e5;
+  --good: #0ca30c;
+  --critical: #e66767;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --fase-renda: rgba(57, 135, 229, 0.08);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+  font: 15px/1.45 var(--font);
+}
+h1, h2 { margin: 0; font-weight: 650; }
+h1 { font-size: 1.35rem; }
+h2 { font-size: 1rem; }
+button, input, select { font: inherit; color: inherit; }
+
+.topo { background: var(--surface); border-bottom: 1px solid var(--border); }
+.topo-inner, main { max-width: 1280px; margin: 0 auto; padding: 0 16px; }
+.topo-inner { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; justify-content: space-between; padding-top: 18px; }
+.sub { margin: 2px 0 12px; color: var(--text-2); }
+.abas { display: flex; gap: 4px; }
+.aba {
+  border: 0; background: none; padding: 10px 14px; cursor: pointer; color: var(--text-2);
+  border-bottom: 2px solid transparent;
+}
+.aba.ativa { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+
+.cenarios {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  margin: 16px 0; padding: 12px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.campo-inline { display: flex; gap: 8px; align-items: center; color: var(--text-2); }
+.cenarios select, .cenarios input[type=text] { min-width: 0; flex: 1 1 160px; }
+.botoes { display: flex; flex-wrap: wrap; gap: 6px; }
+button, .botao {
+  border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px;
+  padding: 6px 12px; cursor: pointer; display: inline-block;
+}
+button:hover, .botao:hover { filter: brightness(0.97); }
+button.primario { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.aviso { color: var(--good); font-size: 0.9rem; }
+
+input, select {
+  background: var(--surface); border: 1px solid var(--axis); border-radius: 8px; padding: 7px 9px;
+}
+input:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.painel { display: grid; grid-template-columns: 320px 1fr; gap: 16px; align-items: start; }
+.painel[hidden] { display: none; }
+#painel-comparar { grid-template-columns: 1fr; }
+
+.entradas { display: grid; gap: 12px; position: sticky; top: 12px; }
+fieldset {
+  margin: 0; padding: 12px 14px 14px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  display: grid; gap: 10px;
+}
+legend { padding: 0 4px; font-weight: 600; }
+fieldset label { display: grid; gap: 4px; color: var(--text-2); font-size: 0.92rem; }
+fieldset input { width: 100%; color: var(--text); font-variant-numeric: tabular-nums; }
+small { color: var(--muted); font-size: 0.8rem; }
+output { color: var(--text); font-weight: 600; }
+.taxas-reais { margin: 0; font-size: 0.82rem; color: var(--text-2); }
+
+.resultados { display: grid; gap: 16px; min-width: 0; }
+.exibicao { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; color: var(--text-2); }
+.segmentado { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.segmentado button { border: 0; border-radius: 0; background: var(--surface); }
+.segmentado button.ativo { background: var(--accent); color: var(--accent-ink); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.tile {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.tile .rotulo { color: var(--text-2); font-size: 0.85rem; }
+.tile .valor { font-size: 1.45rem; font-weight: 650; margin: 2px 0; }
+.tile .det { color: var(--muted); font-size: 0.82rem; }
+.ok { color: var(--good); }
+.ruim { color: var(--critical); }
+
+.cartao {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px; min-width: 0;
+}
+.cartao-topo { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; align-items: baseline; }
+.nota { margin: 4px 0 10px; color: var(--text-2); font-size: 0.88rem; }
+.duas-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.linhas { display: grid; gap: 8px; }
+.linha { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--grid); padding-top: 8px; }
+.linha:first-child { border-top: 0; padding-top: 0; }
+.linha span:first-child { color: var(--text-2); }
+.linha strong { text-align: right; }
+
+.grafico { position: relative; width: 100%; }
+.grafico svg { display: block; width: 100%; height: auto; overflow: visible; }
+.grafico text { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.grafico .rotulo-direto { font-size: 12px; fill: var(--text-2); }
+.grafico .gridline { stroke: var(--grid); stroke-width: 1; }
+.grafico .baseline { stroke: var(--axis); stroke-width: 1; }
+.grafico .crosshair { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.tooltip {
+  position: absolute; pointer-events: none; background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 0.82rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); white-space: nowrap; z-index: 2;
+}
+.tooltip .t-titulo { font-weight: 600; margin-bottom: 4px; }
+.tooltip .t-linha { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.tooltip .t-linha b { font-weight: 600; margin-left: 12px; font-variant-numeric: tabular-nums; }
+.chip { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+.chip.tracejado { height: 0; border-top: 2px dashed; border-radius: 0; width: 14px; }
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.85rem; color: var(--text-2); margin: 6px 0 4px; }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+
+.tabela-cartao summary { cursor: pointer; list-style: none; }
+.tabela-cartao summary::-webkit-details-marker { display: none; }
+.tabela-cartao summary h2::before { content: "▸ "; color: var(--muted); }
+.tabela-cartao[open] summary h2::before { content: "▾ "; }
+.tabela-wrap { overflow-x: auto; margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 8px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--grid); }
+th { color: var(--text-2); font-weight: 600; position: sticky; top: 0; background: var(--surface); }
+th:nth-child(-n+3), td:nth-child(-n+3) { text-align: left; }
+#tabela-comparar th:nth-child(-n+2), #tabela-comparar td:nth-child(-n+2) { text-align: left; }
+tr.marco td { font-weight: 600; background: var(--surface-2); }
+tr.fase-renda td:nth-child(3) { color: var(--accent); }
+#tabela-comparar tr.atual td { background: var(--surface-2); }
+
+.rodape { color: var(--muted); font-size: 0.8rem; padding: 16px 0 32px; }
+
+@media (max-width: 900px) {
+  .painel { grid-template-columns: 1fr; }
+  .entradas { position: static; }
+  .duas-colunas { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-inner">
+      <div>
+        <h1>Calculadora de Renda Passiva</h1>
+        <p class="sub">Projeções para a aposentadoria, em reais de hoje.</p>
+      </div>
+      <nav class="abas" role="tablist">
+        <button role="tab" class="aba ativa" data-aba="simulacao" aria-selected="true">Simulação</button>
+        <button role="tab" class="aba" data-aba="comparar" aria-selected="false">Comparar cenários</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="cenarios" aria-label="Cenários salvos">
+      <label class="campo-inline">Cenário
+        <select id="cenario-select"></select>
+      </label>
+      <input id="cenario-nome" type="text" placeholder="Nome do cenário" aria-label="Nome do cenário">
+      <div class="botoes">
+        <button id="btn-salvar" class="primario">Salvar</button>
+        <button id="btn-novo">Salvar como novo</button>
+        <button id="btn-excluir">Excluir</button>
+        <button id="btn-exportar" title="Baixar todos os cenários num arquivo">Exportar</button>
+        <label class="botao" title="Carregar cenários de um arquivo">Importar
+          <input id="arquivo-importar" type="file" accept="application/json,.json" hidden>
+        </label>
+        <button id="btn-link" title="Copiar um link com este cenário">Copiar link</button>
+      </div>
+      <span id="aviso" class="aviso" role="status" aria-live="polite"></span>
+    </section>
+
+    <div id="painel-simulacao" class="painel">
+      <form id="form" class="entradas" autocomplete="off">
+        <fieldset>
+          <legend>Você</legend>
+          <label>Idade atual <input name="idadeAtual" type="number" min="0" max="100" step="1"></label>
+          <label>Idade para se aposentar <input name="idadeAposentadoria" type="number" min="0" max="100" step="1"></label>
+          <label>Idade final (expectativa) <input name="idadeFinal" type="number" min="0" max="110" step="1">
+            <small>Até quando a renda precisa durar no modo "consumindo o patrimônio".</small></label>
+        </fieldset>
+        <fieldset>
+          <legend>Objetivo</legend>
+          <label>Renda passiva desejada (R$/mês) <input name="rendaDesejada" type="number" min="0" step="100">
+            <small>Em reais de hoje.</small></label>
+        </fieldset>
+        <fieldset>
+          <legend>Aportes</legend>
+          <label>Investimento inicial (R$) <input name="investimentoInicial" type="number" min="0" step="1000"></label>
+          <label>Renda mensal atual (R$) <input name="rendaAtual" type="number" min="0" step="100"></label>
+          <label>Economia mensal (%) <input name="economiaPct" type="number" min="0" max="100" step="1">
+            <small>Aporte mensal inicial: <output id="out-aporte"></output></small></label>
+          <label>Crescimento anual do aporte (%) <input name="crescimentoAporte" type="number" step="0.1">
+            <small>Reajuste do aporte por ano. Igual à inflação mantém o aporte constante em reais de hoje.</small></label>
+        </fieldset>
+        <fieldset>
+          <legend>Premissas (% ao ano, nominais)</legend>
+          <label>Rendimento das aplicações <input name="rendAplicacoes" type="number" step="0.1">
+            <small>Na fase de acumulação.</small></label>
+          <label>Rendimento na renda passiva <input name="rendPassiva" type="number" step="0.1">
+            <small>Após a aposentadoria (carteira mais conservadora).</small></label>
+          <label>Inflação <input name="inflacao" type="number" step="0.1"></label>
+          <p class="taxas-reais" id="taxas-reais"></p>
+        </fieldset>
+      </form>
+
+      <div class="resultados">
+        <div class="exibicao">
+          <span>Exibir valores</span>
+          <div class="segmentado" role="radiogroup" aria-label="Exibir valores">
+            <button type="button" data-modo="real" class="ativo" role="radio" aria-checked="true">Em reais de hoje</button>
+            <button type="button" data-modo="nominal" role="radio" aria-checked="false">Nominais (futuros)</button>
+          </div>
+        </div>
+
+        <div class="tiles" id="tiles"></div>
+
+        <div class="cartao">
+          <div class="cartao-topo">
+            <h2>Evolução do patrimônio</h2>
+            <p class="nota">Acumula até a aposentadoria e depois saca a renda desejada todo mês.</p>
+          </div>
+          <div class="grafico" id="grafico-principal"></div>
+        </div>
+
+        <div class="duas-colunas">
+          <div class="cartao">
+            <h2>Quanto preciso aportar?</h2>
+            <p class="nota">Aporte mensal inicial para chegar à meta aos <span data-idade-apos></span> anos,
+              mantendo o crescimento anual informado.</p>
+            <div id="inverso"></div>
+          </div>
+          <div class="cartao">
+            <h2>Na aposentadoria</h2>
+            <p class="nota">O que o patrimônio projetado aos <span data-idade-apos></span> anos permite.</p>
+            <div id="aposentadoria"></div>
+          </div>
+        </div>
+
+        <details class="cartao tabela-cartao" open>
+          <summary><h2>Projeção ano a ano</h2></summary>
+          <div class="tabela-wrap">
+            <table id="tabela">
+              <thead>
+                <tr>
+                  <th>Ano</th><th>Idade</th><th>Fase</th><th>Aportes</th><th>Rendimentos</th>
+                  <th>Saques</th><th>Patrimônio (fim)</th><th>Renda perpétua/mês</th><th>% da meta</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div id="painel-comparar" class="painel" hidden>
+      <div class="cartao">
+        <div class="cartao-topo">
+          <h2>Cenários salvos</h2>
+          <p class="nota">Marque até 6 cenários para ver no gráfico. Valores em reais de hoje.</p>
+        </div>
+        <div class="tabela-wrap">
+          <table id="tabela-comparar">
+            <thead>
+              <tr>
+                <th></th><th>Cenário</th><th>Aporte inicial</th><th>Aplicações</th><th>Renda passiva</th>
+                <th>Meta perpétua</th><th>Atinge aos</th><th>Meta consumindo</th><th>Atinge aos</th>
+                <th>Patrimônio na aposentadoria</th><th>Renda perpétua possível</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="cartao">
+        <h2>Patrimônio por cenário</h2>
+        <div class="legenda" id="legenda-comparar"></div>
+        <div class="grafico" id="grafico-comparar"></div>
+      </div>
+    </div>
+
+    <footer class="rodape">
+      <p>Simulação mês a mês: aportes no fim de cada mês, reajustados a cada 12 meses. Taxa real = (1 + nominal) ÷ (1 + inflação) − 1.
+        Não considera imposto de renda nem taxas. Os cenários ficam salvos neste navegador; use Exportar/Importar ou Copiar link para levar a outro aparelho.</p>
+    </footer>
+  </main>
+
+  <script>
+/*
+ * Motor de cálculo da Calculadora de Renda Passiva.
+ *
+ * Toda a simulação é feita mês a mês e em valores REAIS (reais de hoje):
+ * as taxas nominais informadas são convertidas em taxas reais descontando a
+ * inflação. Para exibir valores nominais basta multiplicar pelo índice de
+ * inflação acumulada do mês (ver `fatorNominal`).
+ *
+ * Funciona no navegador (window.Calc) e no Node (module.exports).
+ */
+(function (root) {
+  'use strict';
+
+  var IDADE_LIMITE = 100; // até onde procuramos a idade em que a meta é atingida
+
+  var PADRAO = {
+    idadeAtual: 30,
+    idadeAposentadoria: 60,
+    idadeFinal: 90,
+    rendaDesejada: 3000,
+    rendaAtual: 8000,
+    economiaPct: 25,
+    investimentoInicial: 0,
+    crescimentoAporte: 4.5,
+    rendAplicacoes: 10,
+    rendPassiva: 8,
+    inflacao: 4.5
+  };
+
+  function mensal(taxaAnual) {
+    return Math.pow(1 + taxaAnual, 1 / 12) - 1;
+  }
+
+  // Taxa real anual a partir da nominal: (1 + nominal) / (1 + inflação) - 1
+  function real(nominalPct, inflacaoPct) {
+    return (1 + nominalPct / 100) / (1 + inflacaoPct / 100) - 1;
+  }
+
+  // Valor presente de `n` saques mensais de `w` à taxa mensal `i`.
+  function valorPresenteSaques(w, i, n) {
+    if (n <= 0) return 0;
+    if (Math.abs(i) < 1e-12) return w * n;
+    return w * (1 - Math.pow(1 + i, -n)) / i;
+  }
+
+  // Saque mensal que zera `p` em `n` meses à taxa mensal `i`.
+  function saqueQueZera(p, i, n) {
+    if (n <= 0) return 0;
+    if (Math.abs(i) < 1e-12) return p / n;
+    return p * i / (1 - Math.pow(1 + i, -n));
+  }
+
+  function normalizar(entrada) {
+    var e = {};
+    Object.keys(PADRAO).forEach(function (k) {
+      var v = Number(entrada && entrada[k]);
+      e[k] = isFinite(v) ? v : PADRAO[k];
+    });
+    e.idadeAposentadoria = Math.max(e.idadeAposentadoria, e.idadeAtual);
+    e.idadeFinal = Math.max(e.idadeFinal, e.idadeAposentadoria);
+    return e;
+  }
+
+  /*
+   * Acumula aportes por `meses` meses. O aporte é feito no fim de cada mês e
+   * é reajustado a cada 12 meses pelo crescimento real do aporte.
+   * Retorna o patrimônio final e o histórico mês a mês (opcional).
+   */
+  function acumular(inicial, aporte0, taxaMes, crescRealAnual, meses, guardar) {
+    var saldo = inicial, aporte = aporte0, hist = guardar ? [] : null;
+    for (var m = 0; m < meses; m++) {
+      if (m > 0 && m % 12 === 0) aporte *= 1 + crescRealAnual;
+      var juros = saldo * taxaMes;
+      saldo += juros + aporte;
+      if (hist) hist.push({ aporte: aporte, juros: juros, saque: 0, saldo: saldo });
+    }
+    return { saldo: saldo, hist: hist, aporteFinal: aporte };
+  }
+
+  function simular(entrada) {
+    var e = normalizar(entrada);
+    var rAplic = real(e.rendAplicacoes, e.inflacao);
+    var rPassiva = real(e.rendPassiva, e.inflacao);
+    var crescReal = real(e.crescimentoAporte, e.inflacao);
+    var iAplic = mensal(rAplic);
+    var iPassiva = mensal(rPassiva);
+    var iInflacao = mensal(e.inflacao / 100);
+
+    var aporte0 = e.rendaAtual * e.economiaPct / 100;
+    var mesesAcum = Math.round((e.idadeAposentadoria - e.idadeAtual) * 12);
+    var mesesSaque = Math.round((e.idadeFinal - e.idadeAposentadoria) * 12);
+    var w = e.rendaDesejada;
+
+    // Metas (em reais de hoje)
+    var metaPerpetua = iPassiva > 0 ? w / iPassiva : Infinity;
+    var metaConsumo = valorPresenteSaques(w, iPassiva, mesesSaque);
+
+    // Fase de acumulação + fase de saque (saca a renda desejada até a idade final)
+    var acum = acumular(e.investimentoInicial, aporte0, iAplic, crescReal, mesesAcum, true);
+    var meses = acum.hist.slice();
+    var patrimonioAposentadoria = acum.saldo;
+    var saldo = patrimonioAposentadoria, esgotaMes = null;
+    for (var m = 0; m < mesesSaque; m++) {
+      var juros = saldo * iPassiva;
+      var saque = Math.min(w, saldo + juros);
+      saldo = saldo + juros - saque;
+      if (saldo <= 1e-6) saldo = 0;
+      if (esgotaMes === null && saque < w - 1e-6) esgotaMes = mesesAcum + m;
+      meses.push({ aporte: 0, juros: juros, saque: saque, saldo: saldo });
+    }
+
+    // Idade em que cada meta é atingida, continuando a aportar indefinidamente
+    function idadeQueAtinge(meta) {
+      if (!isFinite(meta)) return null;
+      if (e.investimentoInicial >= meta) return e.idadeAtual;
+      var s = e.investimentoInicial, a = aporte0;
+      var limite = Math.round((IDADE_LIMITE - e.idadeAtual) * 12);
+      for (var k = 0; k < limite; k++) {
+        if (k > 0 && k % 12 === 0) a *= 1 + crescReal;
+        s = s * (1 + iAplic) + a;
+        if (s >= meta) return e.idadeAtual + (k + 1) / 12;
+      }
+      return null;
+    }
+
+    // Cálculo inverso: patrimônio na aposentadoria é linear no aporte inicial
+    // P = inicial * F + aporte0 * K
+    var F = Math.pow(1 + iAplic, mesesAcum);
+    var K = acumular(0, 1, iAplic, crescReal, mesesAcum, false).saldo;
+    function aporteNecessario(meta) {
+      if (!isFinite(meta)) return null;
+      var falta = meta - e.investimentoInicial * F;
+      if (falta <= 0) return 0;
+      return K > 0 ? falta / K : null;
+    }
+
+    // Por quanto tempo o patrimônio da aposentadoria sustenta a renda desejada
+    var duraAteIdade;
+    if (patrimonioAposentadoria >= metaPerpetua) duraAteIdade = Infinity;
+    else {
+      var s2 = patrimonioAposentadoria, k2 = 0;
+      while (s2 > 0 && k2 < 12 * 200) { s2 = s2 * (1 + iPassiva) - w; k2++; }
+      duraAteIdade = e.idadeAposentadoria + k2 / 12;
+    }
+
+    // Rendimento nominal do ano = variação do saldo nominal - aportes + saques
+    // (inclui a correção pela inflação, que a visão real não mostra).
+    function nominalDoAno(y, bloco, aporteN, saqueN) {
+      var ini = y === 0 ? e.investimentoInicial : meses[y * 12 - 1].saldo * Math.pow(1 + iInflacao, y * 12);
+      var fim = bloco[bloco.length - 1].saldo * Math.pow(1 + iInflacao, y * 12 + bloco.length);
+      return { aporte: aporteN, juros: fim - ini - aporteN + saqueN, saque: saqueN };
+    }
+
+    // Agrega por ano de idade
+    var anos = [], anoAtual = new Date().getFullYear();
+    for (var y = 0; y * 12 < meses.length; y++) {
+      var bloco = meses.slice(y * 12, y * 12 + 12);
+      var fimIdx = y * 12 + bloco.length;
+      var soma = function (campo, nominal) {
+        return bloco.reduce(function (t, x, j) {
+          return t + x[campo] * (nominal ? Math.pow(1 + iInflacao, y * 12 + j + 1) : 1);
+        }, 0);
+      };
+      var fim = bloco[bloco.length - 1].saldo;
+      anos.push({
+        indice: y + 1,
+        ano: anoAtual + y,
+        idade: e.idadeAtual + y,
+        idadeFim: e.idadeAtual + fimIdx / 12,
+        fase: (y * 12) < mesesAcum ? 'Acumulação' : 'Renda',
+        aporte: soma('aporte'),
+        juros: soma('juros'),
+        saque: soma('saque'),
+        nominal: nominalDoAno(y, bloco, soma('aporte', true), soma('saque', true)),
+        saldo: fim,
+        rendaPerpetuaMensal: fim * iPassiva,
+        pctMetaPerpetua: isFinite(metaPerpetua) ? fim / metaPerpetua : null,
+        fatorNominal: Math.pow(1 + iInflacao, fimIdx)
+      });
+    }
+
+    return {
+      entrada: e,
+      taxas: { aplicacoesReal: rAplic, passivaReal: rPassiva, crescimentoAporteReal: crescReal },
+      aporteInicial: aporte0,
+      aporteFinal: acum.aporteFinal,
+      metaPerpetua: metaPerpetua,
+      metaConsumo: metaConsumo,
+      patrimonioAposentadoria: patrimonioAposentadoria,
+      fatorNominalAposentadoria: Math.pow(1 + iInflacao, mesesAcum),
+      rendaPerpetuaPossivel: patrimonioAposentadoria * iPassiva,
+      rendaConsumoPossivel: saqueQueZera(patrimonioAposentadoria, iPassiva, mesesSaque),
+      idadeMetaPerpetua: idadeQueAtinge(metaPerpetua),
+      idadeMetaConsumo: idadeQueAtinge(metaConsumo),
+      aporteNecessarioPerpetua: aporteNecessario(metaPerpetua),
+      aporteNecessarioConsumo: aporteNecessario(metaConsumo),
+      duraAteIdade: duraAteIdade,
+      esgotaIdade: esgotaMes === null ? null : e.idadeAtual + esgotaMes / 12,
+      meses: meses,
+      anos: anos
+    };
+  }
+
+  var api = {
+    PADRAO: PADRAO,
+    simular: simular,
+    normalizar: normalizar,
+    real: real,
+    mensal: mensal,
+    valorPresenteSaques: valorPresenteSaques,
+    saqueQueZera: saqueQueZera
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.Calc = api;
+})(this);
+</script>
+  <script>
+/*
+ * Gráfico de linhas em SVG, sem dependências, com crosshair e tooltip.
+ *
+ * Grafico.linhas(container, {
+ *   x: [números],                         // eixo X compartilhado (idade)
+ *   series: [{ nome, cor, valores, tracejado, rotulo }],
+ *   faixa: { de, ate, nome },             // região sombreada opcional
+ *   formatoY: fn, formatoX: fn, tituloTooltip: fn(x)
+ * })
+ */
+(function (root) {
+  'use strict';
+  var NS = 'http://www.w3.org/2000/svg';
+
+  function el(nome, attrs, pai) {
+    var n = document.createElementNS(NS, nome);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (pai) pai.appendChild(n);
+    return n;
+  }
+
+  // Passos "redondos" para o eixo Y
+  function ticks(max, alvo) {
+    if (!(max > 0)) return [0];
+    var bruto = max / alvo, pot = Math.pow(10, Math.floor(Math.log10(bruto)));
+    var passo = [1, 2, 2.5, 5, 10].map(function (m) { return m * pot; })
+      .find(function (p) { return p >= bruto; });
+    var out = [];
+    for (var v = 0; v <= max + passo * 0.001; v += passo) out.push(v);
+    if (out[out.length - 1] < max) out.push(out[out.length - 1] + passo);
+    return out;
+  }
+
+  function linhas(container, op) {
+    container.innerHTML = '';
+    var largura = Math.max(container.clientWidth, 280);
+    var altura = largura < 560 ? 260 : 340;
+    var m = { t: 12, r: 16, b: 28, l: largura < 560 ? 52 : 64 };
+    var w = largura - m.l - m.r, h = altura - m.t - m.b;
+    var xs = op.x, n = xs.length;
+    if (!n) return;
+
+    var maxY = 0;
+    op.series.forEach(function (s) {
+      s.valores.forEach(function (v) { if (isFinite(v) && v > maxY) maxY = v; });
+    });
+    var yt = ticks(maxY, altura < 300 ? 4 : 5), topo = yt[yt.length - 1] || 1;
+    var x0 = xs[0], x1 = xs[n - 1] === x0 ? x0 + 1 : xs[n - 1];
+    var px = function (x) { return m.l + (x - x0) / (x1 - x0) * w; };
+    var py = function (y) { return m.t + h - Math.min(y, topo) / topo * h; };
+
+    var svg = el('svg', { viewBox: '0 0 ' + largura + ' ' + altura, role: 'img', 'aria-label': op.descricao || 'Gráfico' }, container);
+
+    if (op.faixa && op.faixa.ate > op.faixa.de) {
+      el('rect', { x: px(op.faixa.de), y: m.t, width: px(op.faixa.ate) - px(op.faixa.de), height: h, fill: 'var(--fase-renda)' }, svg);
+      var tf = el('text', { x: px(op.faixa.de) + 6, y: m.t + 14 }, svg);
+      tf.textContent = op.faixa.nome;
+    }
+
+    yt.forEach(function (v) {
+      el('line', { x1: m.l, x2: m.l + w, y1: py(v), y2: py(v), class: v === 0 ? 'baseline' : 'gridline' }, svg);
+      var t = el('text', { x: m.l - 8, y: py(v) + 4, 'text-anchor': 'end' }, svg);
+      t.textContent = op.formatoY(v, true);
+    });
+
+    var passoX = Math.max(1, Math.ceil(n / Math.max(2, Math.floor(w / 70))));
+    passoX = [1, 2, 5, 10, 20].find(function (p) { return p >= passoX; }) || passoX;
+    xs.forEach(function (x) {
+      if (x % passoX !== 0) return;
+      var t = el('text', { x: px(x), y: m.t + h + 18, 'text-anchor': 'middle' }, svg);
+      t.textContent = op.formatoX(x);
+    });
+
+    op.series.forEach(function (s) {
+      var d = '';
+      s.valores.forEach(function (v, i) {
+        if (!isFinite(v)) return;
+        d += (d ? 'L' : 'M') + px(xs[i]).toFixed(1) + ' ' + py(v).toFixed(1);
+      });
+      if (!d) return;
+      el('path', {
+        d: d, fill: 'none', stroke: s.cor, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round',
+        'stroke-dasharray': s.tracejado ? '6 4' : 'none'
+      }, svg);
+      if (s.rotulo && isFinite(s.valores[0]) && s.valores[0] <= topo) {
+        var t = el('text', { x: m.l + 6, y: py(s.valores[0]) - 6, class: 'rotulo-direto' }, svg);
+        t.textContent = s.rotulo;
+      }
+    });
+
+    // Camada de hover
+    var cross = el('line', { y1: m.t, y2: m.t + h, class: 'crosshair', visibility: 'hidden' }, svg);
+    var pontos = op.series.map(function (s) {
+      return el('circle', { r: 4, fill: s.cor, stroke: 'var(--surface)', 'stroke-width': 2, visibility: 'hidden' }, svg);
+    });
+    var area = el('rect', { x: m.l, y: m.t, width: w, height: h, fill: 'transparent' }, svg);
+    var tip = document.createElement('div');
+    tip.className = 'tooltip';
+    tip.hidden = true;
+    container.appendChild(tip);
+
+    function mover(ev) {
+      var r = svg.getBoundingClientRect(), esc = largura / r.width;
+      var cx = (ev.clientX - r.left) * esc;
+      var i = Math.round((cx - m.l) / w * (n - 1));
+      i = Math.max(0, Math.min(n - 1, i));
+      var x = px(xs[i]);
+      cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
+      var html = '<div class="t-titulo">' + op.tituloTooltip(xs[i]) + '</div>';
+      op.series.forEach(function (s, k) {
+        var v = s.valores[i];
+        if (isFinite(v)) {
+          pontos[k].setAttribute('cx', x); pontos[k].setAttribute('cy', py(v)); pontos[k].setAttribute('visibility', 'visible');
+        } else pontos[k].setAttribute('visibility', 'hidden');
+        html += '<div class="t-linha"><span><i class="chip' + (s.tracejado ? ' tracejado' : '') + '" style="' +
+          (s.tracejado ? 'border-color:' : 'background:') + s.cor + '"></i> ' + s.nome + '</span><b>' +
+          (isFinite(v) ? op.formatoY(v) : '—') + '</b></div>';
+      });
+      tip.innerHTML = html;
+      tip.hidden = false;
+      var cr = container.getBoundingClientRect();
+      var left = ev.clientX - cr.left + 14;
+      if (left + tip.offsetWidth > cr.width) left = ev.clientX - cr.left - tip.offsetWidth - 14;
+      tip.style.left = Math.max(0, left) + 'px';
+      tip.style.top = Math.max(0, ev.clientY - cr.top - tip.offsetHeight / 2) + 'px';
+    }
+    function sair() {
+      tip.hidden = true;
+      cross.setAttribute('visibility', 'hidden');
+      pontos.forEach(function (p) { p.setAttribute('visibility', 'hidden'); });
+    }
+    area.addEventListener('pointermove', mover);
+    area.addEventListener('pointerdown', mover);
+    area.addEventListener('pointerleave', sair);
+  }
+
+  root.Grafico = { linhas: linhas };
+})(this);
+</script>
+  <script>
+(function () {
+  'use strict';
+
+  var CHAVE = 'calcRendaPassiva.v1';
+  var MAX_GRAFICO = 6;
+  var CORES = ['--series-1', '--series-2', '--series-3', '--series-4', '--series-5', '--series-6'];
+  var CAMPOS = Object.keys(Calc.PADRAO);
+
+  var brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+  var compacto = new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 });
+  var pct = new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 1 });
+  var pct2 = new Intl.NumberFormat('pt-BR', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function moeda(v) { return isFinite(v) ? brl.format(v) : '—'; }
+  function moedaCurta(v) { return 'R$ ' + compacto.format(v); }
+  function cor(nome) { return 'var(' + nome + ')'; }
+  function $(sel) { return document.querySelector(sel); }
+  function $$(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
+
+  function idadeTexto(idade) {
+    if (idade === null || idade === undefined) return 'não atinge até os 100';
+    if (idade === Infinity) return 'para sempre';
+    var anos = Math.floor(idade + 1e-9), meses = Math.round((idade - anos) * 12);
+    if (meses === 12) { anos++; meses = 0; }
+    return anos + ' anos' + (meses ? ' e ' + meses + (meses === 1 ? ' mês' : ' meses') : '');
+  }
+
+  // ---------- Armazenamento ----------
+  function cenariosIniciais() {
+    var p = Calc.PADRAO, mk = function (nome, extra) {
+      return { id: novoId(), nome: nome, dados: Object.assign({}, p, extra) };
+    };
+    return [
+      mk('Base', {}),
+      mk('Pessimista', { rendAplicacoes: 8, rendPassiva: 7 }),
+      mk('Otimista', { rendAplicacoes: 12, rendPassiva: 9 })
+    ];
+  }
+  function novoId() { return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+  function carregar() {
+    try {
+      var s = JSON.parse(localStorage.getItem(CHAVE));
+      if (s && Array.isArray(s.cenarios) && s.cenarios.length) return s;
+    } catch (e) { /* armazenamento indisponível */ }
+    var c = cenariosIniciais();
+    return { cenarios: c, atualId: c[0].id };
+  }
+  function persistir() {
+    try { localStorage.setItem(CHAVE, JSON.stringify(estado)); }
+    catch (e) { avisar('Não foi possível salvar neste navegador. Use Exportar.', true); }
+  }
+
+  var estado = carregar();
+  var modo = 'real';
+  var sujo = false;
+  var selecionados = {}; // id -> slot de cor
+  estado.cenarios.slice(0, 3).forEach(function (c, i) { selecionados[c.id] = i; });
+
+  function atual() {
+    return estado.cenarios.find(function (c) { return c.id === estado.atualId; }) || estado.cenarios[0];
+  }
+
+  // ---------- Formulário ----------
+  var form = $('#form');
+  function lerForm() {
+    var d = {};
+    CAMPOS.forEach(function (k) {
+      var v = parseFloat(String(form.elements[k].value).replace(',', '.'));
+      d[k] = isFinite(v) ? v : Calc.PADRAO[k];
+    });
+    return d;
+  }
+  function preencherForm(d) {
+    CAMPOS.forEach(function (k) { form.elements[k].value = d[k] !== undefined ? d[k] : Calc.PADRAO[k]; });
+  }
+
+  function popularSelect() {
+    var sel = $('#cenario-select');
+    sel.innerHTML = estado.cenarios.map(function (c) {
+      return '<option value="' + c.id + '">' + esc(c.nome) + '</option>';
+    }).join('');
+    sel.value = estado.atualId;
+    $('#cenario-nome').value = atual().nome;
+  }
+
+  function avisar(msg, erro) {
+    var a = $('#aviso');
+    a.textContent = msg;
+    a.className = 'aviso' + (erro ? ' ruim' : '');
+    clearTimeout(avisar.t);
+    if (msg && !erro) avisar.t = setTimeout(function () { a.textContent = sujo ? 'Alterações não salvas' : ''; }, 2500);
+  }
+  function marcarSujo(v) {
+    sujo = v;
+    if (v) { $('#aviso').textContent = 'Alterações não salvas'; $('#aviso').className = 'aviso ruim'; }
+  }
+
+  // ---------- Renderização da simulação ----------
+  var ultimo = null;
+
+  function render() {
+    var r = Calc.simular(lerForm());
+    ultimo = r;
+    var e = r.entrada, nominal = modo === 'nominal';
+    var fApos = nominal ? r.fatorNominalAposentadoria : 1;
+
+    $('#out-aporte').textContent = moeda(r.aporteInicial);
+    $('#taxas-reais').innerHTML = 'Taxas reais: aplicações <b>' + pct2.format(r.taxas.aplicacoesReal) +
+      '</b> · renda passiva <b>' + pct2.format(r.taxas.passivaReal) + '</b> · aporte <b>' +
+      pct2.format(r.taxas.crescimentoAporteReal) + '</b> a.a.';
+    $$('[data-idade-apos]').forEach(function (s) { s.textContent = e.idadeAposentadoria; });
+
+    var alcancaP = r.idadeMetaPerpetua !== null && r.idadeMetaPerpetua <= e.idadeAposentadoria + 1e-9;
+    var alcancaC = r.idadeMetaConsumo !== null && r.idadeMetaConsumo <= e.idadeAposentadoria + 1e-9;
+    var pctMeta = isFinite(r.metaPerpetua) ? r.patrimonioAposentadoria / r.metaPerpetua : null;
+    var sufixo = nominal ? ' (valor aos ' + e.idadeAposentadoria + ')' : ' (em reais de hoje)';
+
+    $('#tiles').innerHTML = [
+      tile('Meta: viver só dos juros', moeda(r.metaPerpetua * fApos),
+        'Atinge aos <b class="' + (alcancaP ? 'ok' : 'ruim') + '">' + idadeTexto(r.idadeMetaPerpetua) + '</b>'),
+      tile('Meta: consumir o patrimônio até os ' + e.idadeFinal, moeda(r.metaConsumo * fApos),
+        'Atinge aos <b class="' + (alcancaC ? 'ok' : 'ruim') + '">' + idadeTexto(r.idadeMetaConsumo) + '</b>'),
+      tile('Patrimônio aos ' + e.idadeAposentadoria + ' anos', moeda(r.patrimonioAposentadoria * fApos),
+        pctMeta === null ? 'Taxa real da renda passiva ≤ 0' : pct.format(pctMeta) + ' da meta de viver só dos juros'),
+      tile('Aporte mensal inicial', moeda(r.aporteInicial),
+        (e.crescimentoAporte ? 'Cresce ' + pct.format(e.crescimentoAporte / 100) + ' ao ano' : 'Sem reajuste') +
+        ' · último aporte ' + moeda(r.aporteFinal * fApos))
+    ].join('');
+
+    var falta = function (nec) {
+      if (nec === null) return '<strong>—</strong>';
+      var cls = nec <= r.aporteInicial + 0.5 ? 'ok' : 'ruim';
+      var extra = e.rendaAtual > 0 ? ' <small>(' + pct.format(nec / e.rendaAtual) + ' da renda)</small>' : '';
+      return '<strong class="' + cls + '">' + moeda(nec) + '/mês' + extra + '</strong>';
+    };
+    $('#inverso').innerHTML = '<div class="linhas">' +
+      linha('Viver só dos juros', falta(r.aporteNecessarioPerpetua)) +
+      linha('Consumindo até os ' + e.idadeFinal, falta(r.aporteNecessarioConsumo)) +
+      linha('Seu aporte atual', '<strong>' + moeda(r.aporteInicial) + '/mês</strong>') +
+      '</div>';
+
+    var dura = r.duraAteIdade === Infinity ? 'para sempre'
+      : (r.duraAteIdade >= e.idadeFinal ? 'até os ' + idadeTexto(r.duraAteIdade) : 'só até os ' + idadeTexto(r.duraAteIdade));
+    $('#aposentadoria').innerHTML = '<div class="linhas">' +
+      linha('Renda vivendo só dos juros', '<strong>' + moeda(r.rendaPerpetuaPossivel * fApos) + '/mês</strong>') +
+      linha('Renda consumindo até os ' + e.idadeFinal, '<strong>' + moeda(r.rendaConsumoPossivel * fApos) + '/mês</strong>') +
+      linha('Sacando ' + moeda(e.rendaDesejada * fApos) + '/mês, o dinheiro dura',
+        '<strong class="' + (r.duraAteIdade >= e.idadeFinal ? 'ok' : 'ruim') + '">' + dura + '</strong>') +
+      '</div><p class="nota">' + sufixo.trim() + '</p>';
+
+    renderGraficoPrincipal(r);
+    renderTabela(r);
+  }
+
+  function tile(rotulo, valor, det) {
+    return '<div class="tile"><div class="rotulo">' + esc(rotulo) + '</div><div class="valor">' + valor +
+      '</div><div class="det">' + det + '</div></div>';
+  }
+  function linha(a, b) { return '<div class="linha"><span>' + esc(a) + '</span>' + b + '</div>'; }
+
+  function pontosPatrimonio(r, nominal) {
+    var xs = [r.entrada.idadeAtual], ys = [r.entrada.investimentoInicial];
+    r.anos.forEach(function (a) {
+      xs.push(a.idade + 1);
+      ys.push(a.saldo * (nominal ? a.fatorNominal : 1));
+    });
+    return { x: xs, y: ys };
+  }
+
+  function renderGraficoPrincipal(r) {
+    var nominal = modo === 'nominal', e = r.entrada;
+    var p = pontosPatrimonio(r, nominal);
+    var fator = function (i) { return nominal ? (i === 0 ? 1 : r.anos[i - 1].fatorNominal) : 1; };
+    var series = [
+      { nome: 'Patrimônio', cor: cor('--series-1'), valores: p.y },
+      { nome: 'Meta: só dos juros', cor: cor('--series-2'), tracejado: true, rotulo: 'Meta: só dos juros',
+        valores: p.x.map(function (_, i) { return r.metaPerpetua * fator(i); }) },
+      { nome: 'Meta: consumindo', cor: cor('--series-3'), tracejado: true, rotulo: 'Meta: consumindo',
+        valores: p.x.map(function (_, i) { return r.metaConsumo * fator(i); }) }
+    ];
+    var box = $('#grafico-principal');
+    var leg = box.previousElementSibling && box.previousElementSibling.classList.contains('legenda')
+      ? box.previousElementSibling : null;
+    if (!leg) { leg = document.createElement('div'); leg.className = 'legenda'; box.parentNode.insertBefore(leg, box); }
+    leg.innerHTML = legenda(series);
+    Grafico.linhas(box, {
+      x: p.x, series: series,
+      faixa: { de: e.idadeAposentadoria, ate: e.idadeFinal, nome: 'Aposentadoria' },
+      formatoY: function (v, eixo) { return eixo ? moedaCurta(v) : moeda(v); },
+      formatoX: function (x) { return x + ''; },
+      tituloTooltip: function (x) { return x + ' anos · ' + (new Date().getFullYear() + x - e.idadeAtual); },
+      descricao: 'Evolução do patrimônio por idade'
+    });
+  }
+
+  function legenda(series) {
+    return series.map(function (s) {
+      return '<span><i class="chip' + (s.tracejado ? ' tracejado' : '') + '" style="' +
+        (s.tracejado ? 'border-color:' : 'background:') + s.cor + '"></i>' + esc(s.nome) + '</span>';
+    }).join('');
+  }
+
+  function renderTabela(r) {
+    var nominal = modo === 'nominal';
+    var marcoMeta = r.anos.findIndex(function (a) { return a.fase === 'Acumulação' && a.pctMetaPerpetua >= 1; });
+    var primeiroRenda = r.anos.findIndex(function (a) { return a.fase === 'Renda'; });
+    $('#tabela tbody').innerHTML = r.anos.map(function (a, i) {
+      var f = nominal ? a.fatorNominal : 1;
+      var fl = nominal ? a.nominal : a;
+      var cls = [];
+      if (i === marcoMeta || i === primeiroRenda) cls.push('marco');
+      if (a.fase === 'Renda') cls.push('fase-renda');
+      return '<tr class="' + cls.join(' ') + '"' + (i === marcoMeta ? ' title="Meta de viver só dos juros atingida"' : '') + '>' +
+        '<td>' + a.ano + '</td><td>' + a.idade + '</td><td>' + a.fase + (i === marcoMeta ? ' ★' : '') + '</td>' +
+        '<td>' + moeda(fl.aporte) + '</td><td>' + moeda(fl.juros) + '</td><td>' + moeda(fl.saque) + '</td>' +
+        '<td>' + moeda(a.saldo * f) + '</td><td>' + moeda(a.rendaPerpetuaMensal * f) + '</td>' +
+        '<td>' + (a.pctMetaPerpetua === null ? '—' : pct.format(a.pctMetaPerpetua)) + '</td></tr>';
+    }).join('');
+  }
+
+  // ---------- Comparação ----------
+  function renderComparar() {
+    var resultados = estado.cenarios.map(function (c) { return { c: c, r: Calc.simular(c.dados) }; });
+    $('#tabela-comparar tbody').innerHTML = resultados.map(function (x) {
+      var r = x.r, e = r.entrada, slot = selecionados[x.c.id];
+      var marca = slot !== undefined
+        ? '<i class="chip" style="background:' + cor(CORES[slot]) + '"></i>' : '';
+      return '<tr class="' + (x.c.id === estado.atualId ? 'atual' : '') + '">' +
+        '<td><input type="checkbox" data-id="' + x.c.id + '"' + (slot !== undefined ? ' checked' : '') +
+        ' aria-label="Mostrar ' + esc(x.c.nome) + ' no gráfico"></td>' +
+        '<td>' + marca + ' ' + esc(x.c.nome) + '</td>' +
+        '<td>' + moeda(r.aporteInicial) + '</td>' +
+        '<td>' + e.rendAplicacoes + '%</td><td>' + e.rendPassiva + '%</td>' +
+        '<td>' + moeda(r.metaPerpetua) + '</td><td>' + idadeTexto(r.idadeMetaPerpetua) + '</td>' +
+        '<td>' + moeda(r.metaConsumo) + '</td><td>' + idadeTexto(r.idadeMetaConsumo) + '</td>' +
+        '<td>' + moeda(r.patrimonioAposentadoria) + '</td><td>' + moeda(r.rendaPerpetuaPossivel) + '/mês</td></tr>';
+    }).join('');
+
+    var escolhidos = resultados.filter(function (x) { return selecionados[x.c.id] !== undefined; });
+    var box = $('#grafico-comparar');
+    if (!escolhidos.length) {
+      box.innerHTML = '<p class="nota">Marque ao menos um cenário na tabela.</p>';
+      $('#legenda-comparar').innerHTML = '';
+      return;
+    }
+    var min = Math.min.apply(null, escolhidos.map(function (x) { return x.r.entrada.idadeAtual; }));
+    var max = Math.max.apply(null, escolhidos.map(function (x) { return x.r.entrada.idadeFinal; }));
+    var xs = [];
+    for (var a = min; a <= max; a++) xs.push(a);
+    var series = escolhidos.map(function (x) {
+      var p = pontosPatrimonio(x.r, false), mapa = {};
+      p.x.forEach(function (idade, i) { mapa[idade] = p.y[i]; });
+      return {
+        nome: x.c.nome, cor: cor(CORES[selecionados[x.c.id]]),
+        valores: xs.map(function (idade) { return idade in mapa ? mapa[idade] : NaN; })
+      };
+    });
+    $('#legenda-comparar').innerHTML = legenda(series);
+    Grafico.linhas(box, {
+      x: xs, series: series,
+      formatoY: function (v, eixo) { return eixo ? moedaCurta(v) : moeda(v); },
+      formatoX: function (x) { return x + ''; },
+      tituloTooltip: function (x) { return x + ' anos'; },
+      descricao: 'Patrimônio por cenário'
+    });
+  }
+
+  $('#tabela-comparar').addEventListener('change', function (ev) {
+    var id = ev.target.getAttribute('data-id');
+    if (!id) return;
+    if (ev.target.checked) {
+      var usados = Object.keys(selecionados).map(function (k) { return selecionados[k]; });
+      var livre = CORES.findIndex(function (_, i) { return usados.indexOf(i) < 0; });
+      if (livre < 0) { ev.target.checked = false; avisar('Máximo de ' + MAX_GRAFICO + ' cenários no gráfico.', true); return; }
+      selecionados[id] = livre;
+    } else delete selecionados[id];
+    renderComparar();
+  });
+
+  // ---------- Ações de cenário ----------
+  function salvar(comoNovo) {
+    var nome = $('#cenario-nome').value.trim() || 'Cenário sem nome';
+    if (comoNovo) {
+      if (nome === atual().nome) nome += ' (cópia)';
+      var c = { id: novoId(), nome: nome, dados: lerForm() };
+      estado.cenarios.push(c);
+      estado.atualId = c.id;
+      var usados = Object.keys(selecionados).map(function (k) { return selecionados[k]; });
+      var livre = CORES.findIndex(function (_, i) { return usados.indexOf(i) < 0; });
+      if (livre >= 0) selecionados[c.id] = livre;
+    } else {
+      atual().nome = nome;
+      atual().dados = lerForm();
+    }
+    persistir();
+    popularSelect();
+    marcarSujo(false);
+    avisar('Cenário "' + nome + '" salvo.');
+  }
+
+  $('#btn-salvar').addEventListener('click', function () { salvar(false); });
+  $('#btn-novo').addEventListener('click', function () { salvar(true); });
+  $('#btn-excluir').addEventListener('click', function () {
+    if (estado.cenarios.length <= 1) { avisar('Mantenha ao menos um cenário.', true); return; }
+    if (!confirm('Excluir o cenário "' + atual().nome + '"?')) return;
+    delete selecionados[estado.atualId];
+    estado.cenarios = estado.cenarios.filter(function (c) { return c.id !== estado.atualId; });
+    estado.atualId = estado.cenarios[0].id;
+    persistir();
+    trocarPara(estado.atualId);
+  });
+  $('#cenario-select').addEventListener('change', function (ev) {
+    if (sujo && !confirm('Descartar as alterações não salvas?')) { ev.target.value = estado.atualId; return; }
+    trocarPara(ev.target.value);
+  });
+
+  function trocarPara(id) {
+    estado.atualId = id;
+    persistir();
+    popularSelect();
+    preencherForm(atual().dados);
+    marcarSujo(false);
+    avisar('');
+    render();
+    if (!$('#painel-comparar').hidden) renderComparar();
+  }
+
+  $('#btn-exportar').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify({ versao: 1, cenarios: estado.cenarios }, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'cenarios-renda-passiva.json';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+  $('#arquivo-importar').addEventListener('change', function (ev) {
+    var f = ev.target.files[0];
+    if (!f) return;
+    f.text().then(function (txt) {
+      var dados = JSON.parse(txt), lista = Array.isArray(dados) ? dados : dados.cenarios;
+      if (!Array.isArray(lista) || !lista.length) throw new Error('vazio');
+      var novos = lista.map(function (c) {
+        return { id: novoId(), nome: String(c.nome || 'Importado').slice(0, 80), dados: Calc.normalizar(c.dados) };
+      });
+      estado.cenarios = estado.cenarios.concat(novos);
+      persistir();
+      trocarPara(novos[0].id);
+      avisar(novos.length + ' cenário(s) importado(s).');
+    }).catch(function () { avisar('Arquivo inválido.', true); });
+    ev.target.value = '';
+  });
+
+  $('#btn-link').addEventListener('click', function () {
+    var payload = { nome: $('#cenario-nome').value.trim() || atual().nome, dados: lerForm() };
+    var url = location.href.split('#')[0] + '#c=' + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload)))));
+    var ok = function () { avisar('Link copiado. Quem abrir verá este cenário.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok, function () { prompt('Copie o link:', url); });
+    else prompt('Copie o link:', url);
+  });
+
+  function lerLink() {
+    var m = location.hash.match(/^#c=(.+)$/);
+    if (!m) return false;
+    try {
+      var p = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));
+      preencherForm(Calc.normalizar(p.dados));
+      $('#cenario-nome').value = String(p.nome || 'Cenário do link').slice(0, 80);
+      marcarSujo(true);
+      avisar('Cenário aberto por link. Use "Salvar como novo" para guardá-lo.', true);
+      history.replaceState(null, '', location.href.split('#')[0]);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  // ---------- Abas e modo ----------
+  $$('.aba').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var alvo = b.getAttribute('data-aba');
+      $$('.aba').forEach(function (x) {
+        var on = x === b;
+        x.classList.toggle('ativa', on);
+        x.setAttribute('aria-selected', on);
+      });
+      $('#painel-simulacao').hidden = alvo !== 'simulacao';
+      $('#painel-comparar').hidden = alvo !== 'comparar';
+      if (alvo === 'comparar') renderComparar(); else render();
+    });
+  });
+  $$('.segmentado button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      modo = b.getAttribute('data-modo');
+      $$('.segmentado button').forEach(function (x) {
+        x.classList.toggle('ativo', x === b);
+        x.setAttribute('aria-checked', x === b);
+      });
+      render();
+    });
+  });
+
+  form.addEventListener('input', function () { marcarSujo(true); render(); });
+  form.addEventListener('submit', function (ev) { ev.preventDefault(); });
+
+  var redim;
+  window.addEventListener('resize', function () {
+    clearTimeout(redim);
+    redim = setTimeout(function () {
+      if (!$('#painel-simulacao').hidden) render(); else renderComparar();
+    }, 150);
+  });
+
+  // ---------- Início ----------
+  popularSelect();
+  preencherForm(atual().dados);
+  lerLink();
+  render();
+})();
+</script>
+</body>
+</html>
